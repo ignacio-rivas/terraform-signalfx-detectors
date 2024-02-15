@@ -60,6 +60,29 @@ variable "cache_hits_threshold_major" {
   default     = 60
 }
 
+variable "cache_hits_disabled_critical" {
+  description = "Disable critical alerting rule for cache_hits detector"
+  type        = bool
+  default     = true
+}
+
+variable "cache_hits_threshold_critical" {
+  description = "Critical threshold for cache_hits detector in %"
+  type        = number
+  default     = 50
+}
+variable "cache_hits_lasting_duration_critical" {
+  description = "Minimum duration that conditions must be true before raising alert"
+  type        = string
+  default     = "5m"
+}
+
+variable "cache_hits_at_least_percentage_critical" {
+  description = "Percentage of lasting that conditions must be true before raising alert (>= 0.0 and <= 1.0)"
+  type        = number
+  default     = 0.9
+}
+
 variable "cache_hits_lasting_duration_major" {
   description = "Minimum duration that conditions must be true before raising alert"
   type        = string

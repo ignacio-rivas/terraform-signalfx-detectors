@@ -15,9 +15,22 @@ resource "signalfx_detector" "cache_hits" {
     hits = data('CacheHits', filter=base_filtering and ${module.filtering.signalflow}, rollup='sum', extrapolation='zero')${var.cache_hits_aggregation_function}${var.cache_hits_transformation_function}
     misses = data('CacheMisses', filter=base_filtering and ${module.filtering.signalflow}, rollup='sum', extrapolation='zero')${var.cache_hits_aggregation_function}${var.cache_hits_transformation_function}
     signal = (hits/(hits+misses)).fill(value=1).scale(100).publish('signal')
-    detect(when(signal < ${var.cache_hits_threshold_major}, lasting=%{if var.cache_hits_lasting_duration_major == null}None%{else}'${var.cache_hits_lasting_duration_major}'%{endif}, at_least=${var.cache_hits_at_least_percentage_major})).publish('MAJOR')
+    detect(when(signal < ${var.cache_hits_threshold_critical}, lasting=%{if var.cache_hits_lasting_duration_critical == null}None%{else}'${var.cache_hits_lasting_duration_critical}'%{endif}, at_least=${var.cache_hits_at_least_percentage_critical})).publish('CRIT')
+    detect(when(signal < ${var.cache_hits_threshold_major}, lasting=%{if var.cache_hits_lasting_duration_major == null}None%{else}'${var.cache_hits_lasting_duration_major}'%{endif}, at_least=${var.cache_hits_at_least_percentage_major}) and (not when(signal < ${var.cache_hits_threshold_critical}, lasting=%{if var.cache_hits_lasting_duration_critical == null}None%{else}'${var.cache_hits_lasting_duration_critical}'%{endif}, at_least=${var.cache_hits_at_least_percentage_critical}))).publish('MAJOR')
     detect(when(signal < ${var.cache_hits_threshold_minor}, lasting=%{if var.cache_hits_lasting_duration_minor == null}None%{else}'${var.cache_hits_lasting_duration_minor}'%{endif}, at_least=${var.cache_hits_at_least_percentage_minor}) and (not when(signal < ${var.cache_hits_threshold_major}, lasting=%{if var.cache_hits_lasting_duration_major == null}None%{else}'${var.cache_hits_lasting_duration_major}'%{endif}, at_least=${var.cache_hits_at_least_percentage_major}))).publish('MINOR')
 EOF
+
+  rule {
+    description           = "is too low < ${var.cache_hits_threshold_critical}%"
+    severity              = "Critical"
+    detect_label          = "CRIT"
+    disabled              = coalesce(var.cache_hits_disabled_critical, var.cache_hits_disabled, var.detectors_disabled)
+    notifications         = try(coalescelist(lookup(var.cache_hits_notifications, "critical", []), var.notifications.critical), null)
+    runbook_url           = try(coalesce(var.cache_hits_runbook_url, var.runbook_url), "")
+    tip                   = var.cache_hits_tip
+    parameterized_subject = var.message_subject == "" ? local.rule_subject : var.message_subject
+    parameterized_body    = var.message_body == "" ? local.rule_body : var.message_body
+  }
 
   rule {
     description           = "is too low < ${var.cache_hits_threshold_major}%"
