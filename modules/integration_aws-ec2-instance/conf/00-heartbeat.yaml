@@ -1,0 +1,12 @@
+module: "AWS EC2"
+name: "heartbeat"
+
+transformation: false
+aggregation: true
+filtering: "filter('stat', 'mean') and filter('namespace', 'AWS/EC2')"
+
+signals:
+  signal:
+    metric: "CPUUtilization"
+rules:
+  critical:

@@ -1,0 +1,19 @@
+module: system
+
+name: "CPUUtilization"
+id: cpu
+value_unit: "%"
+signals:
+  signal:
+    metric: CPUUtilization
+    extrapolation: zero
+rules:
+  critical:
+    threshold: 90
+    comparator: ">"
+    lasting_duration: "1h"
+  major:
+    threshold: 85
+    comparator: ">"
+    lasting_duration: "1h"
+    dependency: critical
